@@ -825,7 +825,7 @@ var SCALE = 3;
 // Cloud-deployed proxy on Render. After deploying, replace the URL below
 // with your actual Render service URL (e.g. https://fabriform-proxy.onrender.com).
 // Until then, the front-end falls back gracefully to preset / heuristic mode.
-var RENDER_URL = "https://fabriform.onrender.com";
+var RENDER_URL = "https://YOUR-RENDER-APP.onrender.com";
 var LOCAL_PROXY_URL = "http://127.0.0.1:8787";
 var PROXY_URL = (location.protocol === "file:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")
   ? LOCAL_PROXY_URL
@@ -1216,32 +1216,105 @@ function renderLayoutView(svg, pattern) {
     boundsList.push(getBounds(pieces[i].data.outline));
   }
 
+  // ---------------------------------------------------------
+  // Decide layout strategy:
+  //   • Two-column ("nested"): front+back left, sleeves right —
+  //     only if the combined width fits within the fabric bolt.
+  //   • Single-column fallback: stack everything vertically when
+  //     two-column would overflow. Sleeves go side-by-side in
+  //     their own row when they fit, otherwise also stack.
+  //
+  // Each piece is also tested to make sure it fits the bolt
+  // width on its own. If a panel is wider than the bolt, the
+  // user is shown a warning rather than a silent overflow.
+  // ---------------------------------------------------------
+
   var col1W = Math.max(boundsList[0].w, boundsList[1].w);
   var col2W = Math.max(boundsList[2].w, boundsList[3].w);
-  var col2X = col1W + gap * 2;
+  var twoColTotal = col1W + col2W + gap * 3;
 
-  var y1 = gap, y2 = gap;
   var placed = [];
-  [0, 1].forEach(function (idx) {
-    var b = boundsList[idx];
-    placed.push({
-      idx: idx,
-      offsetX: -b.minX + (col1W - b.w) / 2 + gap,
-      offsetY: -b.minY + y1
-    });
-    y1 += b.h + gap;
-  });
-  [2, 3].forEach(function (idx) {
-    var b = boundsList[idx];
-    placed.push({
-      idx: idx,
-      offsetX: -b.minX + col2X + (col2W - b.w) / 2,
-      offsetY: -b.minY + y2
-    });
-    y2 += b.h + gap;
-  });
+  var totalH;
+  var oversizeWarning = null;
 
-  var totalH = Math.max(y1, y2);
+  // Check single-piece overflow first
+  var widestPiece = Math.max(col1W, col2W);
+  if (widestPiece > fabricWidth) {
+    oversizeWarning = "Largest panel (" + Math.round(widestPiece) +
+                      " cm) exceeds bolt width — pattern needs panel splitting.";
+  }
+
+  if (twoColTotal <= fabricWidth) {
+    // ----- Two-column layout (original, when it fits) -----
+    var col2X = col1W + gap * 2;
+    var y1 = gap, y2 = gap;
+    [0, 1].forEach(function (idx) {
+      var b = boundsList[idx];
+      placed.push({
+        idx: idx,
+        offsetX: -b.minX + (col1W - b.w) / 2 + gap,
+        offsetY: -b.minY + y1
+      });
+      y1 += b.h + gap;
+    });
+    [2, 3].forEach(function (idx) {
+      var b = boundsList[idx];
+      placed.push({
+        idx: idx,
+        offsetX: -b.minX + col2X + (col2W - b.w) / 2,
+        offsetY: -b.minY + y2
+      });
+      y2 += b.h + gap;
+    });
+    totalH = Math.max(y1, y2);
+
+  } else {
+    // ----- Single-column fallback for wide panels -----
+    // Front, then Back stacked centred on the bolt.
+    // Sleeves placed side-by-side below if their combined
+    // width fits, otherwise also stacked.
+    var y = gap;
+
+    [0, 1].forEach(function (idx) {
+      var b = boundsList[idx];
+      placed.push({
+        idx: idx,
+        offsetX: -b.minX + (fabricWidth - b.w) / 2,
+        offsetY: -b.minY + y
+      });
+      y += b.h + gap;
+    });
+
+    var sleeveW = boundsList[2].w;
+    var sleevesPaired = (sleeveW * 2 + gap * 3) <= fabricWidth;
+    if (sleevesPaired) {
+      // Place left + right sleeve side-by-side, centred together
+      var pairWidth = sleeveW * 2 + gap;
+      var pairStart = (fabricWidth - pairWidth) / 2;
+      [2, 3].forEach(function (idx, j) {
+        var b = boundsList[idx];
+        placed.push({
+          idx: idx,
+          offsetX: -b.minX + pairStart + j * (sleeveW + gap),
+          offsetY: -b.minY + y
+        });
+      });
+      y += boundsList[2].h + gap;
+    } else {
+      // Sleeves also stack
+      [2, 3].forEach(function (idx) {
+        var b = boundsList[idx];
+        placed.push({
+          idx: idx,
+          offsetX: -b.minX + (fabricWidth - b.w) / 2,
+          offsetY: -b.minY + y
+        });
+        y += b.h + gap;
+      });
+    }
+    totalH = y;
+  }
+
   var pad = 5;
   var vbW = fabricWidth * SCALE + pad * 2 * SCALE;
   var vbH = (totalH + pad * 2) * SCALE;
@@ -1293,6 +1366,19 @@ function renderLayoutView(svg, pattern) {
     });
     lab.textContent = piece.name;
     svg.appendChild(lab);
+  }
+
+  // Show warning if any piece exceeds bolt width
+  if (oversizeWarning) {
+    var warn = el("text", {
+      x: (pad + fabricWidth / 2) * SCALE,
+      y: (pad + totalH + 4) * SCALE,
+      fill: "#c9a978",
+      "font-family": "'JetBrains Mono',monospace",
+      "font-size": "8", "text-anchor": "middle", "letter-spacing": "1"
+    });
+    warn.textContent = "⚠ " + oversizeWarning;
+    svg.appendChild(warn);
   }
 }
 
