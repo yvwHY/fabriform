@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: fabriform-proxy
+    runtime: python
+    plan: free
+    buildCommand: ""
+    startCommand: "python3 proxy.py"
+    healthCheckPath: /ping
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false        # marked secret, must be entered manually in dashboard
+      - key: PYTHON_VERSION
+        value: "3.11"

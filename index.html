@@ -1,0 +1,2330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fabri-Form — Stage 01 / Digital Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,600;1,9..144,300&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #2a2a2a;
+    --bg-2: #1f1f1f;
+    --line: #e8e4dc;
+    --line-dim: #7a7670;
+    --accent: #d9c9a8;
+    --ink: #f4efe6;
+    --muted: #8a8680;
+    --grid: rgba(232, 228, 220, 0.06);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body {
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 32px 48px 24px;
+    border-bottom: 1px solid var(--line-dim);
+  }
+
+  .wordmark {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: -0.02em;
+  }
+  .wordmark sup {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-style: normal;
+    letter-spacing: 0.1em;
+    color: var(--line-dim);
+    margin-left: 4px;
+  }
+
+  .header-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--line-dim);
+    text-align: right;
+    line-height: 1.8;
+  }
+  .header-meta .stage { color: var(--accent); }
+
+  .proxy-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .proxy-status .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--line-dim);
+    transition: background 0.3s;
+  }
+  .proxy-status.online .dot { background: #8db77f; box-shadow: 0 0 6px #8db77f; }
+  .proxy-status.offline .dot { background: #c47a6a; }
+
+  .hero {
+    padding: 64px 48px 48px;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 48px;
+    align-items: end;
+    border-bottom: 1px solid var(--line-dim);
+  }
+
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(42px, 5.5vw, 78px);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 300;
+  }
+
+  .hero-aside {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+    max-width: 360px;
+    border-left: 1px solid var(--line-dim);
+    padding-left: 20px;
+  }
+  .hero-aside strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  main {
+    display: grid;
+    grid-template-columns: 340px 1fr 320px;
+    min-height: 720px;
+  }
+
+  .panel {
+    padding: 32px;
+    border-right: 1px solid var(--line-dim);
+  }
+  .panel:last-child { border-right: none; }
+
+  .panel-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--line-dim);
+    margin-bottom: 4px;
+  }
+  .panel-subtitle {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 22px;
+    font-weight: 300;
+    margin-bottom: 28px;
+    line-height: 1.1;
+  }
+
+  .input-section { margin-bottom: 36px; }
+
+  .section-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--line-dim);
+  }
+  .section-label .name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .section-label .index {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--line-dim);
+  }
+
+  .sketch-zone {
+    aspect-ratio: 16 / 10;
+    border: 1px dashed var(--line-dim);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    background: var(--bg-2);
+    transition: border-color 0.2s, background 0.2s;
+    overflow: hidden;
+    width: 100%;
+  }
+  .sketch-zone:hover { border-color: var(--accent); }
+  .sketch-zone.has-image { border-style: solid; cursor: default; }
+  .sketch-zone img {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 8px;
+    display: block;
+  }
+  .sketch-zone .placeholder {
+    text-align: center;
+    color: var(--line-dim);
+  }
+  .sketch-zone .placeholder-icon {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    font-style: italic;
+    margin-bottom: 8px;
+    color: var(--accent);
+  }
+  .sketch-zone .placeholder-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Sketch preset gallery */
+  .sketch-gallery {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .sketch-preset {
+    aspect-ratio: 1;
+    background: var(--bg-2);
+    border: 1px solid var(--line-dim);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.15s;
+  }
+  .sketch-preset:hover { border-color: var(--accent); }
+  .sketch-preset.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .sketch-preset canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .sketch-preset-label {
+    position: absolute;
+    bottom: 2px; left: 0; right: 0;
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 7px;
+    letter-spacing: 0.1em;
+    color: var(--line-dim);
+    text-transform: uppercase;
+    background: linear-gradient(transparent, rgba(42,42,42,0.85) 50%);
+    padding: 6px 0 2px;
+  }
+
+  .sketch-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .btn {
+    flex: 1;
+    padding: 10px 12px;
+    background: transparent;
+    border: 1px solid var(--line-dim);
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:hover { background: var(--line); color: var(--bg); border-color: var(--line); }
+  .btn.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .btn.primary:hover { background: var(--line); border-color: var(--line); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .upload-link {
+    display: block;
+    text-align: center;
+    margin-top: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: var(--line-dim);
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .upload-link:hover { color: var(--accent); }
+
+  .analysis-result {
+    margin-top: 16px;
+    padding: 12px;
+    background: var(--bg-2);
+    border-left: 2px solid var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    line-height: 1.7;
+    color: var(--muted);
+    display: none;
+  }
+  .analysis-result.active { display: block; }
+  .analysis-result .status {
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+    font-size: 9px;
+  }
+  .analysis-result .source {
+    font-size: 8px;
+    color: var(--line-dim);
+    margin-bottom: 8px;
+    letter-spacing: 0.08em;
+  }
+  .analysis-result .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+  }
+  .analysis-result .row span:last-child { color: var(--ink); }
+
+  .param { margin-bottom: 18px; }
+  .param-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .param-name {
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+    font-style: italic;
+    font-weight: 300;
+  }
+  .param-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+  }
+  .param-value .unit {
+    color: var(--line-dim);
+    margin-left: 2px;
+    font-size: 9px;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-runnable-track {
+    height: 1px;
+    background: var(--line-dim);
+  }
+  input[type="range"]::-moz-range-track {
+    height: 1px;
+    background: var(--line-dim);
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    border-radius: 50%;
+    margin-top: -6px;
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+
+  .neckline-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .neckline-btn {
+    padding: 8px 4px;
+    background: var(--bg-2);
+    border: 1px solid var(--line-dim);
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .neckline-btn:hover { color: var(--ink); }
+  .neckline-btn.active {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+
+  .canvas-panel {
+    padding: 0;
+    position: relative;
+    background:
+      radial-gradient(circle at center, rgba(217, 201, 168, 0.03) 0%, transparent 70%),
+      var(--bg);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .canvas-header {
+    padding: 24px 32px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--line-dim);
+  }
+  .canvas-header h2 {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 26px;
+  }
+  .view-toggle {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--line-dim);
+  }
+  .view-toggle button {
+    background: transparent;
+    border: none;
+    padding: 8px 14px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .view-toggle button + button { border-left: 1px solid var(--line-dim); }
+  .view-toggle button.active { background: var(--accent); color: var(--bg); }
+
+  .canvas-stage {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    min-height: 500px;
+  }
+
+  .canvas-stage svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .canvas-footer {
+    padding: 16px 32px;
+    border-top: 1px solid var(--line-dim);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--line-dim);
+    letter-spacing: 0.1em;
+  }
+  .canvas-footer .stats { display: flex; gap: 24px; }
+  .canvas-footer .stats span strong {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .output-panel { background: var(--bg-2); }
+
+  .piece-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+  .piece-card {
+    border: 1px solid var(--line-dim);
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    background: var(--bg);
+  }
+  .piece-thumb {
+    width: 52px;
+    height: 52px;
+    background: var(--bg-2);
+    border: 1px solid var(--line-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .piece-thumb svg { width: 100%; height: 100%; padding: 4px; }
+  .piece-info { flex: 1; min-width: 0; }
+  .piece-name {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 15px;
+    margin-bottom: 2px;
+  }
+  .piece-dims {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+
+  .export-section {
+    border-top: 1px solid var(--line-dim);
+    padding-top: 24px;
+  }
+
+  .export-btn {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 8px;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .export-btn:hover { background: var(--line); color: var(--bg); }
+  .export-btn .arrow {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 18px;
+  }
+  .export-btn.accent {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+  .export-btn.accent:hover {
+    background: var(--line);
+    border-color: var(--line);
+  }
+
+  .manifesto {
+    padding: 48px;
+    border-top: 1px solid var(--line-dim);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 48px;
+  }
+  .manifesto-block h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .manifesto-block p {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+  .manifesto-block p em {
+    font-style: italic;
+    color: var(--ink);
+  }
+
+  .footer-bar {
+    padding: 20px 48px;
+    border-top: 1px solid var(--line-dim);
+    display: flex;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--line-dim);
+  }
+
+  @media (max-width: 1100px) {
+    main { grid-template-columns: 1fr; }
+    .panel { border-right: none; border-bottom: 1px solid var(--line-dim); }
+    .hero { grid-template-columns: 1fr; gap: 24px; }
+    .manifesto { grid-template-columns: 1fr; }
+  }
+
+  .loader {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--line-dim);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="wordmark">Fabri<span style="color:var(--accent);">·</span>Form<sup>STAGE 01</sup></div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.15em;color:var(--line-dim);margin-top:4px;text-transform:uppercase;">An embodied pipeline for collaborative pattern cutting</div>
+  </div>
+  <div class="header-meta">
+    <div>v.0.3 / digital pipeline</div>
+    <div class="stage">— sketch ⟶ pattern ⟶ cut —</div>
+    <div class="proxy-status" id="proxyStatus">
+      <span class="dot"></span>
+      <span id="proxyStatusText">api · checking…</span>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.1em;color:var(--line-dim);margin-top:6px;text-transform:uppercase;line-height:1.5;max-width:240px;text-align:right;">
+      live multimodal inference requires<br>
+      local proxy — see submission video<br>
+      for full claude api demonstration
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>Between the <em>industrial</em><br>and the <em>handmade</em>,<br>a thinking tool.</h1>
+  <aside class="hero-aside">
+    <strong>Contemporary garment craft has bifurcated.</strong> On one side, fully industrialised production — fast, cheap, de-skilled. On the other, couture handcraft — slow, precise, gatekept by decades of tacit knowledge. The middle ground, where a designer can think <em>through</em> a pattern, is vanishing. <strong>Fabri-Form is a prosthetic for that middle.</strong>
+  </aside>
+</section>
+
+<main>
+
+  <section class="panel">
+    <div class="panel-title">01 / Input</div>
+    <div class="panel-subtitle">The designer's<br>two-handed thinking.</div>
+
+    <div class="input-section">
+      <div class="section-label">
+        <span class="name">Design Sketch</span>
+        <span class="index">Module_A · visual intent</span>
+      </div>
+      <div class="sketch-zone" id="sketchZone">
+        <div class="placeholder" id="sketchPlaceholder">
+          <div class="placeholder-icon">◍</div>
+          <div class="placeholder-text">Pick a preset below</div>
+        </div>
+        <img id="sketchImg" alt="sketch" style="display:none;">
+      </div>
+
+      <div class="sketch-gallery" id="sketchGallery"></div>
+      <input type="file" id="sketchInput" accept="image/*" style="display:none;">
+      <div class="upload-link" id="uploadLink">or upload your own sketch ↑</div>
+
+      <div class="sketch-actions">
+        <button class="btn primary" id="analyseBtn" disabled>Analyse →</button>
+      </div>
+      <div class="analysis-result" id="analysisResult">
+        <div class="status" id="analysisStatus">Ready</div>
+        <div class="source" id="analysisSource"></div>
+        <div id="analysisBody"></div>
+      </div>
+    </div>
+
+    <div class="input-section">
+      <div class="section-label">
+        <span class="name">Body Data</span>
+        <span class="index">Module_B · embodied</span>
+      </div>
+
+      <div class="param">
+        <div class="param-head">
+          <span class="param-name">Chest</span>
+          <span class="param-value"><span id="chestVal">96</span><span class="unit">cm</span></span>
+        </div>
+        <input type="range" id="chest" min="80" max="130" value="96">
+      </div>
+
+      <div class="param">
+        <div class="param-head">
+          <span class="param-name">Body length</span>
+          <span class="param-value"><span id="lengthVal">68</span><span class="unit">cm</span></span>
+        </div>
+        <input type="range" id="length" min="50" max="90" value="68">
+      </div>
+
+      <div class="param">
+        <div class="param-head">
+          <span class="param-name">Shoulder width</span>
+          <span class="param-value"><span id="shoulderVal">44</span><span class="unit">cm</span></span>
+        </div>
+        <input type="range" id="shoulder" min="36" max="56" value="44">
+      </div>
+
+      <div class="param">
+        <div class="param-head">
+          <span class="param-name">Sleeve length</span>
+          <span class="param-value"><span id="sleeveVal">58</span><span class="unit">cm</span></span>
+        </div>
+        <input type="range" id="sleeve" min="10" max="70" value="58">
+      </div>
+
+      <div class="param">
+        <div class="param-head">
+          <span class="param-name">Ease (looseness)</span>
+          <span class="param-value"><span id="easeVal">8</span><span class="unit">cm</span></span>
+        </div>
+        <input type="range" id="ease" min="0" max="25" value="8">
+      </div>
+
+      <div class="param">
+        <div class="param-head">
+          <span class="param-name">Neckline depth</span>
+          <span class="param-value"><span id="neckDepthVal">8</span><span class="unit">cm</span></span>
+        </div>
+        <input type="range" id="neckDepth" min="3" max="20" value="8">
+      </div>
+
+      <div class="param">
+        <div class="param-head">
+          <span class="param-name">Neckline style</span>
+          <span class="param-value" id="necklineLabel">crew</span>
+        </div>
+        <div class="neckline-group" id="necklineGroup">
+          <button class="neckline-btn active" data-type="crew">crew</button>
+          <button class="neckline-btn" data-type="v">v-neck</button>
+          <button class="neckline-btn" data-type="scoop">scoop</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="canvas-panel">
+    <div class="canvas-header">
+      <h2>02 / The algorithmic brain</h2>
+      <div class="view-toggle">
+        <button class="active" data-view="flat">flat pattern</button>
+        <button data-view="layout">cut layout</button>
+        <button data-view="iso">exploded view</button>
+      </div>
+    </div>
+    <div class="canvas-stage" id="canvasStage">
+      <svg id="patternSvg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+    <div class="canvas-footer">
+      <div class="stats">
+        <span>Pieces: <strong id="pieceCount">4</strong></span>
+        <span>Fabric: <strong id="fabricArea">—</strong></span>
+        <span>Width: <strong id="reqWidth">150 cm</strong></span>
+      </div>
+      <div>drawn at 1 cm = <span id="scaleDisplay">3</span>px</div>
+    </div>
+  </section>
+
+  <section class="panel output-panel">
+    <div class="panel-title">03 / Output</div>
+    <div class="panel-subtitle">Before the hand<br>touches the cloth.</div>
+
+    <div class="piece-list" id="pieceList"></div>
+
+    <div class="export-section">
+      <button class="export-btn accent" id="downloadSvgBtn">
+        Download SVG <span class="arrow">↓</span>
+      </button>
+      <button class="export-btn" id="downloadPdfBtn">
+        Print-ready PDF <span class="arrow">↓</span>
+      </button>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--line-dim);margin-top:16px;line-height:1.6;letter-spacing:0.05em;">
+        Patterns are generated at 1:1 scale. Print at 100% / Actual Size. Seam allowance: 1 cm.
+      </div>
+    </div>
+  </section>
+</main>
+
+<section class="manifesto">
+  <div class="manifesto-block">
+    <h3>01 · On Intra-action</h3>
+    <p>Following <em>Barad (2007)</em>, the pattern is not drawn by the algorithm nor by the designer alone, but emerges between them. The sliders and the sketch are two hands reaching toward the same garment from different directions.</p>
+  </div>
+  <div class="manifesto-block">
+    <h3>02 · On the Middle</h3>
+    <p>Craft today collapses toward two poles — mass industry or artisan mastery. This tool argues for the <em>designer-who-thinks-in-patterns</em>, an agent who neither subcontracts construction nor performs it alone.</p>
+  </div>
+  <div class="manifesto-block">
+    <h3>03 · On What Comes Next</h3>
+    <p>Stage 02 will replace the screen with a <em>pan-tilt laser</em> that projects these lines onto cloth in real space. The flat pattern is provisional; the final site is fabric, scissors, and hand.</p>
+  </div>
+</section>
+
+<div class="footer-bar">
+  <div>Fabri-Form · Stage 01 · Digital Pipeline</div>
+  <div>Yu Ting Liao · 2026</div>
+</div>
+
+<script>
+"use strict";
+
+var SVG_NS = "http://www.w3.org/2000/svg";
+var SCALE = 3;
+
+// Proxy URL: auto-switches between local development and production.
+// When opened from file:// or localhost → use local Python proxy.
+// Cloud-deployed proxy on Render. After deploying, replace the URL below
+// with your actual Render service URL (e.g. https://fabriform-proxy.onrender.com).
+// Until then, the front-end falls back gracefully to preset / heuristic mode.
+var RENDER_URL = "https://YOUR-RENDER-APP.onrender.com";
+var LOCAL_PROXY_URL = "http://127.0.0.1:8787";
+var PROXY_URL = (location.protocol === "file:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")
+  ? LOCAL_PROXY_URL
+  : RENDER_URL;
+
+var state = {
+  chest: 96,
+  length: 68,
+  shoulder: 44,
+  sleeve: 58,
+  ease: 8,
+  neckDepth: 8,
+  neckline: "crew",
+  view: "flat",
+  sketchDataUrl: null,
+  sketchSource: null, // 'preset', 'upload'
+  analysing: false,
+  proxyAvailable: false
+};
+
+// =====================================================================
+// PATTERN GEOMETRY (unchanged)
+// =====================================================================
+
+function generatePattern(p) {
+  var halfChest = (p.chest + p.ease) / 2;
+  var halfShoulder = p.shoulder / 2;
+  var armholeDepth = p.chest / 4 + 2;
+  var neckWidth = p.shoulder * 0.18 + 3;
+  var sleeveCapHeight = armholeDepth * 0.55;
+  var bicepWidth = p.chest / 4 + 2;
+  var cuffWidth = bicepWidth * 0.68;
+  var hemWidth = halfChest + 1;
+
+  var neckDropFront =
+    p.neckline === "v" ? p.neckDepth * 1.6 :
+    p.neckline === "scoop" ? p.neckDepth * 1.3 :
+    p.neckDepth;
+  var shoulderSlope = 2;
+
+  var front = buildBodicePiece({
+    halfShoulder: halfShoulder, armholeDepth: armholeDepth,
+    neckWidth: neckWidth, neckDrop: neckDropFront,
+    shoulderSlope: shoulderSlope, length: p.length, hemWidth: hemWidth,
+    halfChest: halfChest, necklineStyle: p.neckline
+  });
+  var back = buildBodicePiece({
+    halfShoulder: halfShoulder, armholeDepth: armholeDepth,
+    neckWidth: neckWidth, neckDrop: Math.max(2.5, p.neckDepth * 0.3),
+    shoulderSlope: shoulderSlope, length: p.length, hemWidth: hemWidth,
+    halfChest: halfChest, necklineStyle: "crew"
+  });
+  var sleeve = buildSleevePiece({
+    capHeight: sleeveCapHeight,
+    bicepWidth: bicepWidth, cuffWidth: cuffWidth, sleeveLength: p.sleeve
+  });
+
+  return { front: front, back: back, sleeve: sleeve };
+}
+
+function buildBodicePiece(o) {
+  var cx = 0, topY = 0;
+  var B = { x: cx + o.neckWidth, y: topY };
+  var C = { x: cx + o.halfShoulder, y: topY + o.shoulderSlope };
+  var D = { x: cx + o.halfChest, y: topY + o.armholeDepth };
+  var E = { x: cx + o.hemWidth, y: topY + o.length };
+  var F = { x: cx, y: topY + o.length };
+  var G = { x: cx, y: topY + o.neckDrop };
+
+  var rightHalf = [];
+  var neckPts = necklineCurve(G, B, o.necklineStyle);
+  for (var i = 0; i < neckPts.length; i++) rightHalf.push(neckPts[i]);
+  rightHalf.push(C);
+  var armPts = armholeCurve(C, D);
+  for (var j = 0; j < armPts.length; j++) rightHalf.push(armPts[j]);
+  rightHalf.push(E);
+  rightHalf.push(F);
+
+  var leftHalf = [];
+  for (var k = rightHalf.length - 1; k >= 0; k--) {
+    leftHalf.push({ x: -rightHalf[k].x, y: rightHalf[k].y });
+  }
+
+  var fullOutline = [G];
+  for (var m = 0; m < rightHalf.length; m++) fullOutline.push(rightHalf[m]);
+  for (var n = 1; n < leftHalf.length - 1; n++) fullOutline.push(leftHalf[n]);
+  fullOutline.push(G);
+
+  return {
+    outline: fullOutline,
+    grainline: [{ x: cx, y: topY + 8 }, { x: cx, y: topY + o.length - 8 }],
+    labelPos: { x: cx, y: topY + o.length * 0.45 }
+  };
+}
+
+function necklineCurve(start, end, style) {
+  var steps = 8;
+  var pts = [];
+  if (style === "v") {
+    for (var i = 1; i <= steps; i++) {
+      var t = i / steps;
+      pts.push({
+        x: start.x + (end.x - start.x) * t,
+        y: start.y + (end.y - start.y) * t
+      });
+    }
+  } else {
+    // U-shaped curve for crew / scoop necklines.
+    // The path is drawn as one half (from shoulder corner to centre-bottom).
+    // For a proper U: the curve should stay near horizontal for most of its length,
+    // then dip sharply at the centre. Two cubic control points do this cleanly.
+    var c1x = start.x + (end.x - start.x) * 0.55;
+    var c1y = start.y;                        // first control point: horizontal extension from shoulder
+    var c2x = end.x;
+    var c2y = start.y + (end.y - start.y) * 0.85;  // second control point: vertical approach to bottom
+    for (var s = 1; s <= steps; s++) {
+      var u = s / steps;
+      var mu = 1 - u;
+      var x = mu*mu*mu*start.x + 3*mu*mu*u*c1x + 3*mu*u*u*c2x + u*u*u*end.x;
+      var y = mu*mu*mu*start.y + 3*mu*mu*u*c1y + 3*mu*u*u*c2y + u*u*u*end.y;
+      pts.push({ x: x, y: y });
+    }
+  }
+  return pts;
+}
+
+function armholeCurve(start, end) {
+  var steps = 12;
+  var pts = [];
+  var c1x = start.x + (end.x - start.x) * 0.15;
+  var c1y = start.y + (end.y - start.y) * 0.4;
+  var c2x = start.x + (end.x - start.x) * 0.55;
+  var c2y = start.y + (end.y - start.y) * 0.85;
+  for (var i = 1; i <= steps; i++) {
+    var t = i / steps, mt = 1 - t;
+    var x = mt * mt * mt * start.x + 3 * mt * mt * t * c1x + 3 * mt * t * t * c2x + t * t * t * end.x;
+    var y = mt * mt * mt * start.y + 3 * mt * mt * t * c1y + 3 * mt * t * t * c2y + t * t * t * end.y;
+    pts.push({ x: x, y: y });
+  }
+  return pts;
+}
+
+function buildSleevePiece(o) {
+  var cx = 0, topY = 0;
+  var A = { x: cx, y: topY };
+  var B = { x: cx + o.bicepWidth, y: topY + o.capHeight };
+  var C = { x: cx + o.cuffWidth, y: topY + o.sleeveLength };
+  var D = { x: cx, y: topY + o.sleeveLength };
+
+  var capSteps = 14;
+  var capPts = [];
+  var c1x = cx + o.bicepWidth * 0.25;
+  var c1y = topY - o.capHeight * 0.15;
+  var c2x = cx + o.bicepWidth * 0.65;
+  var c2y = topY + o.capHeight * 0.35;
+  for (var i = 1; i <= capSteps; i++) {
+    var t = i / capSteps, mt = 1 - t;
+    capPts.push({
+      x: mt * mt * mt * A.x + 3 * mt * mt * t * c1x + 3 * mt * t * t * c2x + t * t * t * B.x,
+      y: mt * mt * mt * A.y + 3 * mt * mt * t * c1y + 3 * mt * t * t * c2y + t * t * t * B.y
+    });
+  }
+
+  var rightSide = [];
+  for (var j = 0; j < capPts.length; j++) rightSide.push(capPts[j]);
+  rightSide.push(C);
+  rightSide.push(D);
+
+  var leftSide = [];
+  for (var k = rightSide.length - 1; k >= 0; k--) {
+    leftSide.push({ x: -rightSide[k].x, y: rightSide[k].y });
+  }
+
+  var outline = [A];
+  for (var m = 0; m < rightSide.length; m++) outline.push(rightSide[m]);
+  for (var n = 1; n < leftSide.length - 1; n++) outline.push(leftSide[n]);
+  outline.push(A);
+
+  return {
+    outline: outline,
+    grainline: [{ x: cx, y: topY + 4 }, { x: cx, y: topY + o.sleeveLength - 4 }],
+    labelPos: { x: cx, y: topY + o.sleeveLength * 0.5 }
+  };
+}
+
+// =====================================================================
+// UTILITIES
+// =====================================================================
+
+function pointsToPath(points) {
+  if (!points.length) return "";
+  var d = "M " + points[0].x.toFixed(2) + " " + points[0].y.toFixed(2);
+  for (var i = 1; i < points.length; i++) {
+    d += " L " + points[i].x.toFixed(2) + " " + points[i].y.toFixed(2);
+  }
+  d += " Z";
+  return d;
+}
+
+function getBounds(points) {
+  var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  for (var i = 0; i < points.length; i++) {
+    var p = points[i];
+    if (p.x < minX) minX = p.x;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.y > maxY) maxY = p.y;
+  }
+  return { minX: minX, maxX: maxX, minY: minY, maxY: maxY,
+           w: maxX - minX, h: maxY - minY };
+}
+
+function el(name, attrs) {
+  var e = document.createElementNS(SVG_NS, name);
+  if (attrs) {
+    for (var k in attrs) {
+      if (Object.prototype.hasOwnProperty.call(attrs, k)) {
+        e.setAttribute(k, attrs[k]);
+      }
+    }
+  }
+  return e;
+}
+
+function clearChildren(node) {
+  while (node.firstChild) node.removeChild(node.firstChild);
+}
+
+// =====================================================================
+// RENDERING
+// =====================================================================
+
+function render() {
+  var pattern = generatePattern(state);
+  var svg = document.getElementById("patternSvg");
+  clearChildren(svg);
+
+  if (state.view === "flat") {
+    renderFlatView(svg, pattern);
+  } else if (state.view === "layout") {
+    renderLayoutView(svg, pattern);
+  } else if (state.view === "iso") {
+    renderExplodedView(svg, pattern);
+  }
+
+  updateStats(pattern);
+  updatePieceList(pattern);
+}
+
+function renderFlatView(svg, pattern) {
+  var gap = 10;
+  var pieces = [
+    { data: pattern.front, name: "FRONT", qty: 1 },
+    { data: pattern.back, name: "BACK", qty: 1 },
+    { data: pattern.sleeve, name: "SLEEVE", qty: 2 }
+  ];
+
+  var cursorX = 0, maxH = 0;
+  var placed = [];
+  for (var i = 0; i < pieces.length; i++) {
+    var b = getBounds(pieces[i].data.outline);
+    placed.push({
+      ref: pieces[i],
+      offsetX: cursorX - b.minX,
+      offsetY: -b.minY,
+      bounds: b
+    });
+    cursorX += b.w + gap;
+    if (b.h > maxH) maxH = b.h;
+  }
+  var totalW = cursorX - gap;
+  var totalH = maxH;
+  var pad = 8;
+  var vbW = (totalW + pad * 2) * SCALE;
+  var vbH = (totalH + pad * 2) * SCALE;
+  svg.setAttribute("viewBox", "0 0 " + vbW + " " + vbH);
+
+  for (var gx = 0; gx <= totalW + pad * 2; gx += 5) {
+    svg.appendChild(el("line", {
+      x1: gx * SCALE, y1: 0, x2: gx * SCALE, y2: vbH,
+      stroke: "rgba(232,228,220,0.05)", "stroke-width": "0.5"
+    }));
+  }
+  for (var gy = 0; gy <= totalH + pad * 2; gy += 5) {
+    svg.appendChild(el("line", {
+      x1: 0, y1: gy * SCALE, x2: vbW, y2: gy * SCALE,
+      stroke: "rgba(232,228,220,0.05)", "stroke-width": "0.5"
+    }));
+  }
+
+  for (var p = 0; p < placed.length; p++) {
+    var it = placed[p];
+    var translated = [];
+    for (var q = 0; q < it.ref.data.outline.length; q++) {
+      var pt = it.ref.data.outline[q];
+      translated.push({
+        x: (pt.x + it.offsetX + pad) * SCALE,
+        y: (pt.y + it.offsetY + pad) * SCALE
+      });
+    }
+
+    var b2 = getBounds(translated);
+    var cxx = (b2.minX + b2.maxX) / 2;
+    var cyy = (b2.minY + b2.maxY) / 2;
+    var saScale = 1 + (1 * SCALE) / Math.max(b2.w, b2.h);
+    var saPts = [];
+    for (var r = 0; r < translated.length; r++) {
+      saPts.push({
+        x: cxx + (translated[r].x - cxx) * saScale,
+        y: cyy + (translated[r].y - cyy) * saScale
+      });
+    }
+
+    svg.appendChild(el("path", {
+      d: pointsToPath(saPts), fill: "none",
+      stroke: "rgba(217,201,168,0.35)",
+      "stroke-width": "1", "stroke-dasharray": "4 3"
+    }));
+    svg.appendChild(el("path", {
+      d: pointsToPath(translated),
+      fill: "rgba(244,239,230,0.04)",
+      stroke: "#f4efe6",
+      "stroke-width": "1.2",
+      "stroke-linejoin": "round"
+    }));
+
+    var g0 = it.ref.data.grainline[0];
+    var g1 = it.ref.data.grainline[1];
+    var gp0 = { x: (g0.x + it.offsetX + pad) * SCALE, y: (g0.y + it.offsetY + pad) * SCALE };
+    var gp1 = { x: (g1.x + it.offsetX + pad) * SCALE, y: (g1.y + it.offsetY + pad) * SCALE };
+    svg.appendChild(el("line", {
+      x1: gp0.x, y1: gp0.y, x2: gp1.x, y2: gp1.y,
+      stroke: "#d9c9a8", "stroke-width": "0.8", "stroke-dasharray": "2 4"
+    }));
+    addArrow(svg, gp1, gp0, "#d9c9a8");
+    addArrow(svg, gp0, gp1, "#d9c9a8");
+
+    var lp = {
+      x: (it.ref.data.labelPos.x + it.offsetX + pad) * SCALE,
+      y: (it.ref.data.labelPos.y + it.offsetY + pad) * SCALE
+    };
+    var label = el("text", {
+      x: lp.x, y: lp.y, fill: "#d9c9a8",
+      "font-family": "'JetBrains Mono',monospace",
+      "font-size": "10", "text-anchor": "middle", "letter-spacing": "1.5"
+    });
+    label.textContent = it.ref.name;
+    svg.appendChild(label);
+
+    var sub = el("text", {
+      x: lp.x, y: lp.y + 14, fill: "rgba(232,228,220,0.5)",
+      "font-family": "'JetBrains Mono',monospace",
+      "font-size": "8", "text-anchor": "middle", "letter-spacing": "1"
+    });
+    sub.textContent = "cut " + it.ref.qty + " " + (it.ref.qty === 2 ? "× mirror" : "× on fold");
+    svg.appendChild(sub);
+  }
+}
+
+function addArrow(svg, from, to, color) {
+  var dx = to.x - from.x, dy = to.y - from.y;
+  var len = Math.hypot(dx, dy);
+  if (len < 1) return;
+  var ux = dx / len, uy = dy / len, size = 5;
+  var ax = to.x - ux * size, ay = to.y - uy * size;
+  var px = -uy * size * 0.5, py = ux * size * 0.5;
+  svg.appendChild(el("polygon", {
+    points: to.x + "," + to.y + " " +
+            (ax + px) + "," + (ay + py) + " " +
+            (ax - px) + "," + (ay - py),
+    fill: color
+  }));
+}
+
+function renderLayoutView(svg, pattern) {
+  var fabricWidth = 150;
+  var gap = 3;
+
+  var pieces = [
+    { data: pattern.front, name: "FRONT", mirror: false },
+    { data: pattern.back, name: "BACK", mirror: false },
+    { data: pattern.sleeve, name: "SLEEVE L", mirror: false },
+    { data: pattern.sleeve, name: "SLEEVE R", mirror: true }
+  ];
+
+  var boundsList = [];
+  for (var i = 0; i < pieces.length; i++) {
+    boundsList.push(getBounds(pieces[i].data.outline));
+  }
+
+  var col1W = Math.max(boundsList[0].w, boundsList[1].w);
+  var col2W = Math.max(boundsList[2].w, boundsList[3].w);
+  var col2X = col1W + gap * 2;
+
+  var y1 = gap, y2 = gap;
+  var placed = [];
+  [0, 1].forEach(function (idx) {
+    var b = boundsList[idx];
+    placed.push({
+      idx: idx,
+      offsetX: -b.minX + (col1W - b.w) / 2 + gap,
+      offsetY: -b.minY + y1
+    });
+    y1 += b.h + gap;
+  });
+  [2, 3].forEach(function (idx) {
+    var b = boundsList[idx];
+    placed.push({
+      idx: idx,
+      offsetX: -b.minX + col2X + (col2W - b.w) / 2,
+      offsetY: -b.minY + y2
+    });
+    y2 += b.h + gap;
+  });
+
+  var totalH = Math.max(y1, y2);
+  var pad = 5;
+  var vbW = fabricWidth * SCALE + pad * 2 * SCALE;
+  var vbH = (totalH + pad * 2) * SCALE;
+  svg.setAttribute("viewBox", "0 0 " + vbW + " " + vbH);
+
+  svg.appendChild(el("rect", {
+    x: pad * SCALE, y: pad * SCALE,
+    width: fabricWidth * SCALE, height: totalH * SCALE,
+    fill: "rgba(217,201,168,0.03)",
+    stroke: "#d9c9a8", "stroke-width": "0.8",
+    "stroke-dasharray": "6 4"
+  }));
+
+  var hdr = el("text", {
+    x: (pad + fabricWidth / 2) * SCALE, y: (pad - 1) * SCALE,
+    fill: "#d9c9a8",
+    "font-family": "'JetBrains Mono',monospace",
+    "font-size": "9", "text-anchor": "middle", "letter-spacing": "1.5"
+  });
+  hdr.textContent = "FABRIC BOLT · " + fabricWidth + " CM WIDTH";
+  svg.appendChild(hdr);
+
+  for (var j = 0; j < placed.length; j++) {
+    var p = placed[j];
+    var piece = pieces[p.idx];
+    var translated = [];
+    for (var k = 0; k < piece.data.outline.length; k++) {
+      var pt = piece.data.outline[k];
+      translated.push({
+        x: ((piece.mirror ? -pt.x : pt.x) + p.offsetX + pad) * SCALE,
+        y: (pt.y + p.offsetY + pad) * SCALE
+      });
+    }
+    svg.appendChild(el("path", {
+      d: pointsToPath(translated),
+      fill: "rgba(244,239,230,0.05)",
+      stroke: "#f4efe6", "stroke-width": "1",
+      "stroke-linejoin": "round"
+    }));
+
+    var lp = {
+      x: ((piece.mirror ? -piece.data.labelPos.x : piece.data.labelPos.x) + p.offsetX + pad) * SCALE,
+      y: (piece.data.labelPos.y + p.offsetY + pad) * SCALE
+    };
+    var lab = el("text", {
+      x: lp.x, y: lp.y, fill: "#d9c9a8",
+      "font-family": "'JetBrains Mono',monospace",
+      "font-size": "9", "text-anchor": "middle", "letter-spacing": "1.5"
+    });
+    lab.textContent = piece.name;
+    svg.appendChild(lab);
+  }
+}
+
+// =====================================================================
+// EXPLODED VIEW — pattern pieces in isometric space with assembly hints
+// =====================================================================
+//
+// Draws the three pattern pieces (front, back, sleeve) as flat planes
+// floating in isometric space, arranged around an implied assembly
+// point. Dashed connector lines hint at how the pieces stitch together.
+// Intentionally diagrammatic — a technical-drawing aesthetic, not a
+// fit preview. This respects the project's theme: we reveal structure
+// rather than simulate flesh.
+
+function isoProject(p) {
+  // Fixed dimetric projection (30° / 30°), no rotation.
+  var a = Math.PI / 6;
+  return {
+    x: (p.x - p.z) * Math.cos(a),
+    y: p.y + (p.x + p.z) * Math.sin(a) * 0.5
+  };
+}
+
+function renderExplodedView(svg, pattern) {
+  // Place three pieces in 3D space:
+  //   Back   at z = -30  (behind)
+  //   Front  at z = +30  (in front)
+  //   Sleeve at x = +chest/2 + 30 (to the right, on its own plane)
+  //
+  // Each piece stays flat on a plane parallel to the viewer — we simply
+  // translate its outline in 3D, then project to 2D.
+
+  var p = state;
+  var halfChest = (p.chest + p.ease) / 2;
+
+  var pieces = [
+    {
+      data: pattern.back, name: "BACK",
+      origin: { x: 0, y: 0, z: -40 },
+      fill: "rgba(217,201,168,0.08)",
+      stroke: "#b5a682"
+    },
+    {
+      data: pattern.front, name: "FRONT",
+      origin: { x: 0, y: 0, z: 40 },
+      fill: "rgba(244,239,230,0.12)",
+      stroke: "#f4efe6"
+    },
+    {
+      data: pattern.sleeve, name: "SLEEVE",
+      origin: { x: halfChest + 25, y: -5, z: 0 },
+      fill: "rgba(230,219,195,0.1)",
+      stroke: "#d9c9a8"
+    }
+  ];
+
+  // Compute all projected points for viewport sizing
+  var allPts2D = [];
+  var projectedPieces = [];
+
+  for (var i = 0; i < pieces.length; i++) {
+    var piece = pieces[i];
+    var b = getBounds(piece.data.outline);
+    // Centre outline around origin of its plane
+    var cxP = (b.minX + b.maxX) / 2;
+    var cyP = (b.minY + b.maxY) / 2;
+
+    var outline3D = [];
+    for (var j = 0; j < piece.data.outline.length; j++) {
+      var pt = piece.data.outline[j];
+      outline3D.push({
+        x: piece.origin.x + (pt.x - cxP),
+        y: piece.origin.y + (pt.y - cyP),
+        z: piece.origin.z
+      });
+    }
+    var projected = [];
+    for (var k = 0; k < outline3D.length; k++) {
+      var p2 = isoProject(outline3D[k]);
+      projected.push(p2);
+      allPts2D.push(p2);
+    }
+
+    // Grainline endpoints
+    var g0 = piece.data.grainline[0];
+    var g1 = piece.data.grainline[1];
+    var gp0 = isoProject({
+      x: piece.origin.x + (g0.x - cxP),
+      y: piece.origin.y + (g0.y - cyP),
+      z: piece.origin.z
+    });
+    var gp1 = isoProject({
+      x: piece.origin.x + (g1.x - cxP),
+      y: piece.origin.y + (g1.y - cyP),
+      z: piece.origin.z
+    });
+
+    // Label position
+    var lp = isoProject({
+      x: piece.origin.x,
+      y: piece.origin.y + b.h * 0.55,
+      z: piece.origin.z
+    });
+
+    projectedPieces.push({
+      ref: piece, outline2D: projected,
+      grain: [gp0, gp1], labelPos: lp,
+      origin3D: piece.origin,
+      bounds3D: b, centre3D: { x: cxP, y: cyP }
+    });
+  }
+
+  // Assembly connector points (shoulders + side seams)
+  // These connect corresponding points across pieces to hint at how
+  // the garment is sewn.
+  function pointOnPiece(pieceInfo, flatPt) {
+    return isoProject({
+      x: pieceInfo.origin3D.x + (flatPt.x - pieceInfo.centre3D.x),
+      y: pieceInfo.origin3D.y + (flatPt.y - pieceInfo.centre3D.y),
+      z: pieceInfo.origin3D.z
+    });
+  }
+
+  var frontInfo = projectedPieces[1];
+  var backInfo = projectedPieces[0];
+  var sleeveInfo = projectedPieces[2];
+
+  // Find key landmark points on each piece (right shoulder, right armpit, right hem)
+  var frontB = getBounds(pattern.front.outline);
+  var backB = getBounds(pattern.back.outline);
+  var sleeveB = getBounds(pattern.sleeve.outline);
+
+  // Right shoulder on front/back: top-right of outline (halfShoulder, ~shoulderSlope)
+  var halfShoulder = p.shoulder / 2;
+  var shoulderSlope = 2;
+  var armholeDepth = p.chest / 4 + 2;
+
+  var frontShoulderR = pointOnPiece(frontInfo, { x: halfShoulder, y: shoulderSlope });
+  var backShoulderR = pointOnPiece(backInfo, { x: halfShoulder, y: shoulderSlope });
+  var frontArmpitR = pointOnPiece(frontInfo, { x: (p.chest + p.ease) / 2, y: armholeDepth });
+  var backArmpitR = pointOnPiece(backInfo, { x: (p.chest + p.ease) / 2, y: armholeDepth });
+
+  // Sleeve cap apex & right corner (bicep point)
+  var bicep = p.chest / 4 + 2;
+  var sleeveCapTop = pointOnPiece(sleeveInfo, { x: 0, y: 0 });
+  var sleeveRightCap = pointOnPiece(sleeveInfo, { x: bicep, y: armholeDepth * 0.55 });
+
+  // ---------- Viewport ----------
+  // Include connector endpoints
+  allPts2D.push(frontShoulderR, backShoulderR, sleeveCapTop, sleeveRightCap);
+  var b2 = getBounds(allPts2D);
+  var pad = 15;
+  var vbW = (b2.w + pad * 2) * SCALE;
+  var vbH = (b2.h + pad * 2) * SCALE;
+  svg.setAttribute("viewBox", "0 0 " + vbW + " " + vbH);
+
+  function toScreen(pt) {
+    return {
+      x: (pt.x - b2.minX + pad) * SCALE,
+      y: (pt.y - b2.minY + pad) * SCALE
+    };
+  }
+
+  // ---------- Background grid (isometric floor) ----------
+  var floorY = Math.max(frontB.h, backB.h, sleeveB.h) * 0.6 + 15;
+  var gridSpan = 80;
+  var gridStep = 10;
+  for (var gx = -gridSpan; gx <= gridSpan; gx += gridStep) {
+    var ga = toScreen(isoProject({ x: gx, y: floorY, z: -gridSpan }));
+    var gb = toScreen(isoProject({ x: gx, y: floorY, z: gridSpan }));
+    svg.appendChild(el("line", {
+      x1: ga.x, y1: ga.y, x2: gb.x, y2: gb.y,
+      stroke: "rgba(232,228,220,0.05)", "stroke-width": "0.5"
+    }));
+  }
+  for (var gz = -gridSpan; gz <= gridSpan; gz += gridStep) {
+    var ga2 = toScreen(isoProject({ x: -gridSpan, y: floorY, z: gz }));
+    var gb2 = toScreen(isoProject({ x: gridSpan, y: floorY, z: gz }));
+    svg.appendChild(el("line", {
+      x1: ga2.x, y1: ga2.y, x2: gb2.x, y2: gb2.y,
+      stroke: "rgba(232,228,220,0.05)", "stroke-width": "0.5"
+    }));
+  }
+
+  // ---------- Soft shadows on floor ----------
+  pieces.forEach(function (piece, idx) {
+    var info = projectedPieces[idx];
+    var b = getBounds(piece.data.outline);
+    var shadowPts = [];
+    // Project piece outline onto floor (y = floorY), keeping x and z
+    for (var i = 0; i < piece.data.outline.length; i++) {
+      var pt = piece.data.outline[i];
+      var projPt = isoProject({
+        x: piece.origin.x + (pt.x - (b.minX + b.maxX) / 2),
+        y: floorY,
+        z: piece.origin.z
+      });
+      shadowPts.push(toScreen(projPt));
+    }
+    var d = "";
+    for (var s = 0; s < shadowPts.length; s++) {
+      d += (s === 0 ? "M " : " L ") + shadowPts[s].x + " " + shadowPts[s].y;
+    }
+    d += " Z";
+    svg.appendChild(el("path", {
+      d: d, fill: "rgba(0,0,0,0.25)",
+      stroke: "none",
+      filter: "blur(2px)"
+    }));
+  });
+
+  // ---------- Assembly connectors (dashed, drawn behind pieces) ----------
+  var connectors = [
+    { a: frontShoulderR, b: sleeveRightCap, label: "shoulder → cap" },
+    { a: backShoulderR, b: sleeveCapTop, label: "" },
+    { a: frontArmpitR, b: backArmpitR, label: "side seam" }
+  ];
+  connectors.forEach(function (c) {
+    var a = toScreen(c.a);
+    var b = toScreen(c.b);
+    svg.appendChild(el("line", {
+      x1: a.x, y1: a.y, x2: b.x, y2: b.y,
+      stroke: "rgba(217,201,168,0.4)",
+      "stroke-width": "0.8",
+      "stroke-dasharray": "3 3"
+    }));
+  });
+
+  // ---------- Draw pieces (back to front for layering) ----------
+  // Sort by z so deeper pieces are drawn first
+  var sortOrder = projectedPieces.slice().sort(function (a, b) {
+    return a.origin3D.z - b.origin3D.z;
+  });
+
+  sortOrder.forEach(function (info) {
+    var screenPts = [];
+    for (var i = 0; i < info.outline2D.length; i++) {
+      screenPts.push(toScreen(info.outline2D[i]));
+    }
+    var d = "";
+    for (var j = 0; j < screenPts.length; j++) {
+      d += (j === 0 ? "M " : " L ") + screenPts[j].x + " " + screenPts[j].y;
+    }
+    d += " Z";
+    svg.appendChild(el("path", {
+      d: d,
+      fill: info.ref.fill,
+      stroke: info.ref.stroke,
+      "stroke-width": "1.2",
+      "stroke-linejoin": "round"
+    }));
+
+    // Grainline
+    var g0s = toScreen(info.grain[0]);
+    var g1s = toScreen(info.grain[1]);
+    svg.appendChild(el("line", {
+      x1: g0s.x, y1: g0s.y, x2: g1s.x, y2: g1s.y,
+      stroke: info.ref.stroke,
+      "stroke-width": "0.6", "stroke-dasharray": "2 3",
+      opacity: "0.7"
+    }));
+
+    // Label (offset slightly below centre)
+    var lp = toScreen(info.labelPos);
+    var label = el("text", {
+      x: lp.x, y: lp.y, fill: info.ref.stroke,
+      "font-family": "'JetBrains Mono',monospace",
+      "font-size": "10", "text-anchor": "middle", "letter-spacing": "1.5"
+    });
+    label.textContent = info.ref.name;
+    svg.appendChild(label);
+  });
+
+  // ---------- Title ----------
+  var cap = el("text", {
+    x: 30, y: 25, fill: "#d9c9a8",
+    "font-family": "'JetBrains Mono',monospace",
+    "font-size": "10", "letter-spacing": "1.5"
+  });
+  cap.textContent = "EXPLODED VIEW · PATTERN PIECES IN ASSEMBLY ORDER";
+  svg.appendChild(cap);
+  var subcap = el("text", {
+    x: 30, y: 40, fill: "rgba(232,228,220,0.5)",
+    "font-family": "'JetBrains Mono',monospace",
+    "font-size": "8", "letter-spacing": "1"
+  });
+  subcap.textContent = "dashed connectors indicate seam correspondences";
+  svg.appendChild(subcap);
+}
+
+
+// =====================================================================
+// STATS / PIECE LIST
+// =====================================================================
+
+function updateStats(pattern) {
+  var fB = getBounds(pattern.front.outline);
+  var bB = getBounds(pattern.back.outline);
+  var sB = getBounds(pattern.sleeve.outline);
+  var area = (fB.w * fB.h + bB.w * bB.h + sB.w * sB.h * 2) / 10000;
+  document.getElementById("fabricArea").textContent = area.toFixed(2) + " m²";
+  document.getElementById("pieceCount").textContent = "4";
+  document.getElementById("scaleDisplay").textContent = SCALE;
+}
+
+function updatePieceList(pattern) {
+  var list = document.getElementById("pieceList");
+  clearChildren(list);
+  var pieces = [
+    { data: pattern.front, name: "Front", qty: 1 },
+    { data: pattern.back, name: "Back", qty: 1 },
+    { data: pattern.sleeve, name: "Sleeve", qty: 2 }
+  ];
+  for (var i = 0; i < pieces.length; i++) {
+    var p = pieces[i];
+    var b = getBounds(p.data.outline);
+    var card = document.createElement("div");
+    card.className = "piece-card";
+
+    var thumb = document.createElement("div");
+    thumb.className = "piece-thumb";
+    thumb.appendChild(buildMiniSvg(p.data.outline));
+
+    var info = document.createElement("div");
+    info.className = "piece-info";
+    var nameEl = document.createElement("div");
+    nameEl.className = "piece-name";
+    nameEl.textContent = p.name;
+    var dimsEl = document.createElement("div");
+    dimsEl.className = "piece-dims";
+    dimsEl.textContent = b.w.toFixed(1) + " × " + b.h.toFixed(1) + " cm · ×" + p.qty;
+    info.appendChild(nameEl);
+    info.appendChild(dimsEl);
+
+    card.appendChild(thumb);
+    card.appendChild(info);
+    list.appendChild(card);
+  }
+}
+
+function buildMiniSvg(outline) {
+  var b = getBounds(outline);
+  var size = 52, pad = 4;
+  var scale = Math.min((size - pad * 2) / b.w, (size - pad * 2) / b.h);
+  var offsetX = -b.minX * scale + (size - b.w * scale) / 2;
+  var offsetY = -b.minY * scale + (size - b.h * scale) / 2;
+  var pts = [];
+  for (var i = 0; i < outline.length; i++) {
+    pts.push({
+      x: outline[i].x * scale + offsetX,
+      y: outline[i].y * scale + offsetY
+    });
+  }
+  var svg = el("svg", { viewBox: "0 0 " + size + " " + size });
+  svg.appendChild(el("path", {
+    d: pointsToPath(pts), fill: "none",
+    stroke: "#d9c9a8", "stroke-width": "1"
+  }));
+  return svg;
+}
+
+// =====================================================================
+// SKETCH PRESETS
+// =====================================================================
+//
+// 4 preset sketches, each drawn programmatically. Each preset carries
+// the "ground truth" parameters that should be extracted — the local
+// heuristic will then validate itself against these.
+
+var PRESETS = [
+  {
+    id: "a", label: "LONG · CREW",
+    truth: { neckline: "crew", neck_depth_cm: 8, body_length_cm: 68,
+             sleeve_length_cm: 58, ease_cm: 8, shoulder_width_cm: 44,
+             reasoning: "Regular long-sleeve crew." }
+  },
+  {
+    id: "b", label: "SHORT · FIT",
+    truth: { neckline: "crew", neck_depth_cm: 7, body_length_cm: 62,
+             sleeve_length_cm: 22, ease_cm: 2, shoulder_width_cm: 40,
+             reasoning: "Fitted short-sleeve crew." }
+  },
+  {
+    id: "c", label: "V · OVER",
+    truth: { neckline: "v", neck_depth_cm: 14, body_length_cm: 78,
+             sleeve_length_cm: 60, ease_cm: 18, shoulder_width_cm: 50,
+             reasoning: "Oversized long-sleeve V-neck." }
+  },
+  {
+    id: "d", label: "SCOOP · CROP",
+    truth: { neckline: "scoop", neck_depth_cm: 12, body_length_cm: 54,
+             sleeve_length_cm: 12, ease_cm: 4, shoulder_width_cm: 42,
+             reasoning: "Cropped sleeveless scoop-neck." }
+  }
+];
+
+function drawPresetSketch(canvas, id, sizeForGallery) {
+  var ctx = canvas.getContext("2d");
+  var W = canvas.width, H = canvas.height;
+  ctx.fillStyle = "#1f1f1f";
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = "#f4efe6";
+  ctx.fillStyle = "rgba(244,239,230,0.92)";
+
+  // Garment geometry differs per preset
+  var cx = W / 2;
+  var cy = H / 2;
+
+  var bodyW, bodyH, sleeveExtension, sleeveHang, neckDepth, neckStyle, shoulderW;
+
+  if (id === "a") {
+    // Long sleeve crew, regular
+    bodyW = W * 0.3;  bodyH = H * 0.52;
+    sleeveExtension = W * 0.27; sleeveHang = H * 0.38;
+    neckDepth = H * 0.03; neckStyle = "crew";
+    shoulderW = bodyW * 1.05;
+  } else if (id === "b") {
+    // Short sleeve, fitted
+    bodyW = W * 0.25; bodyH = H * 0.45;
+    sleeveExtension = W * 0.06; sleeveHang = H * 0.12;
+    neckDepth = H * 0.025; neckStyle = "crew";
+    shoulderW = bodyW * 1;
+  } else if (id === "c") {
+    // Long sleeve V-neck oversized
+    bodyW = W * 0.38; bodyH = H * 0.6;
+    sleeveExtension = W * 0.3; sleeveHang = H * 0.4;
+    neckDepth = H * 0.09; neckStyle = "v";
+    shoulderW = bodyW * 1.15;
+  } else {
+    // Sleeveless scoop crop
+    bodyW = W * 0.28; bodyH = H * 0.38;
+    sleeveExtension = 0; sleeveHang = 0;
+    neckDepth = H * 0.065; neckStyle = "scoop";
+    shoulderW = bodyW * 0.85;
+  }
+
+  var top = cy - bodyH / 2;
+  var bot = cy + bodyH / 2;
+  var halfB = bodyW / 2;
+  var halfS = shoulderW / 2;
+
+  ctx.beginPath();
+  // Start at top-left of neckline
+  var neckHalfW = halfS * 0.3;
+  ctx.moveTo(cx - neckHalfW, top);
+  // Across top (shoulder line, neck at centre)
+  ctx.quadraticCurveTo(cx, top - 2, cx + neckHalfW, top);
+  // Right shoulder down to armpit or to sleeve extension
+  ctx.lineTo(cx + halfS, top + bodyH * 0.08);
+  if (sleeveExtension > 0) {
+    // Sleeve outward
+    ctx.lineTo(cx + halfS + sleeveExtension, top + sleeveHang * 0.35);
+    ctx.lineTo(cx + halfS + sleeveExtension, top + sleeveHang);
+    ctx.lineTo(cx + halfS + sleeveExtension * 0.7, top + sleeveHang + H * 0.02);
+    ctx.lineTo(cx + halfB, top + sleeveHang * 0.8);
+  } else {
+    // Armhole curve
+    ctx.quadraticCurveTo(cx + halfS * 0.95, top + bodyH * 0.22, cx + halfB, top + bodyH * 0.3);
+  }
+  // Down right side to hem
+  ctx.lineTo(cx + halfB, bot);
+  // Hem across
+  ctx.lineTo(cx - halfB, bot);
+  // Up left side
+  if (sleeveExtension > 0) {
+    ctx.lineTo(cx - halfB, top + sleeveHang * 0.8);
+    ctx.lineTo(cx - halfS - sleeveExtension * 0.7, top + sleeveHang + H * 0.02);
+    ctx.lineTo(cx - halfS - sleeveExtension, top + sleeveHang);
+    ctx.lineTo(cx - halfS - sleeveExtension, top + sleeveHang * 0.35);
+    ctx.lineTo(cx - halfS, top + bodyH * 0.08);
+  } else {
+    ctx.lineTo(cx - halfS, top + bodyH * 0.08);
+    ctx.quadraticCurveTo(cx - halfS * 0.95, top + bodyH * 0.22, cx - halfB, top + bodyH * 0.3);
+    ctx.lineTo(cx - halfB, bot);
+    // Restart path for left side — better to not do this. Instead keep going.
+  }
+  ctx.closePath();
+  ctx.lineWidth = 2;
+  ctx.fill();
+  ctx.stroke();
+
+  // Neckline hole
+  ctx.fillStyle = "#1f1f1f";
+  ctx.beginPath();
+  if (neckStyle === "v") {
+    ctx.moveTo(cx - neckHalfW, top + 2);
+    ctx.lineTo(cx, top + neckDepth);
+    ctx.lineTo(cx + neckHalfW, top + 2);
+    ctx.closePath();
+  } else if (neckStyle === "scoop") {
+    ctx.ellipse(cx, top + neckDepth * 0.6, neckHalfW * 1.25, neckDepth, 0, 0, Math.PI * 2);
+  } else {
+    // crew
+    ctx.ellipse(cx, top + neckDepth * 0.55, neckHalfW, neckDepth * 0.85, 0, 0, Math.PI * 2);
+  }
+  ctx.fill();
+}
+
+function makePresetDataUrl(id) {
+  var c = document.createElement("canvas");
+  c.width = 400; c.height = 300;
+  drawPresetSketch(c, id);
+  return c.toDataURL("image/png");
+}
+
+function buildGallery() {
+  var gallery = document.getElementById("sketchGallery");
+  clearChildren(gallery);
+  PRESETS.forEach(function (preset) {
+    var cell = document.createElement("div");
+    cell.className = "sketch-preset";
+    cell.dataset.id = preset.id;
+
+    var canvas = document.createElement("canvas");
+    canvas.width = 120; canvas.height = 120;
+    drawPresetSketch(canvas, preset.id);
+    cell.appendChild(canvas);
+
+    var label = document.createElement("div");
+    label.className = "sketch-preset-label";
+    label.textContent = preset.label;
+    cell.appendChild(label);
+
+    cell.addEventListener("click", function () {
+      var cells = document.querySelectorAll(".sketch-preset");
+      for (var i = 0; i < cells.length; i++) cells[i].classList.remove("active");
+      cell.classList.add("active");
+      state.sketchSource = { kind: "preset", id: preset.id };
+      loadSketch(makePresetDataUrl(preset.id));
+    });
+
+    gallery.appendChild(cell);
+  });
+}
+
+// =====================================================================
+// CONTROLS
+// =====================================================================
+
+function bindControls() {
+  var ids = ["chest", "length", "shoulder", "sleeve", "ease", "neckDepth"];
+  ids.forEach(function (id) {
+    var inp = document.getElementById(id);
+    var valEl = document.getElementById(id + "Val");
+    inp.addEventListener("input", function () {
+      state[id] = +inp.value;
+      valEl.textContent = inp.value;
+      render();
+    });
+  });
+
+  document.getElementById("necklineGroup").addEventListener("click", function (e) {
+    var t = e.target;
+    if (t.classList && t.classList.contains("neckline-btn")) {
+      var btns = document.querySelectorAll(".neckline-btn");
+      for (var i = 0; i < btns.length; i++) btns[i].classList.remove("active");
+      t.classList.add("active");
+      state.neckline = t.dataset.type;
+      document.getElementById("necklineLabel").textContent = t.dataset.type;
+      render();
+    }
+  });
+
+  var vts = document.querySelectorAll(".view-toggle button");
+  for (var i = 0; i < vts.length; i++) {
+    (function (b) {
+      b.addEventListener("click", function () {
+        for (var j = 0; j < vts.length; j++) vts[j].classList.remove("active");
+        b.classList.add("active");
+        state.view = b.dataset.view;
+        render();
+      });
+    })(vts[i]);
+  }
+
+  var fileInput = document.getElementById("sketchInput");
+  document.getElementById("uploadLink").addEventListener("click", function () {
+    fileInput.click();
+  });
+  fileInput.addEventListener("change", function (e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      state.sketchSource = { kind: "upload" };
+      var cells = document.querySelectorAll(".sketch-preset");
+      for (var i = 0; i < cells.length; i++) cells[i].classList.remove("active");
+      loadSketch(ev.target.result);
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById("analyseBtn").addEventListener("click", analyseSketch);
+  document.getElementById("downloadSvgBtn").addEventListener("click", downloadSvg);
+  document.getElementById("downloadPdfBtn").addEventListener("click", downloadPrintable);
+}
+
+function loadSketch(dataUrl) {
+  state.sketchDataUrl = dataUrl;
+  var img = document.getElementById("sketchImg");
+  img.src = dataUrl;
+  img.style.display = "block";
+  document.getElementById("sketchPlaceholder").style.display = "none";
+  document.getElementById("sketchZone").classList.add("has-image");
+  document.getElementById("analyseBtn").disabled = false;
+}
+
+// =====================================================================
+// PROXY DETECTION
+// =====================================================================
+
+function checkProxy() {
+  var indicator = document.getElementById("proxyStatus");
+  var textEl = document.getElementById("proxyStatusText");
+  fetch(PROXY_URL + "/ping", { method: "GET" })
+    .then(function (r) {
+      if (r.ok) return r.json();
+      throw new Error("bad");
+    })
+    .then(function () {
+      state.proxyAvailable = true;
+      indicator.classList.add("online");
+      indicator.classList.remove("offline");
+      textEl.textContent = "api · proxy online · multimodal llm";
+    })
+    .catch(function () {
+      state.proxyAvailable = false;
+      indicator.classList.remove("online");
+      indicator.classList.add("offline");
+      textEl.textContent = "api · proxy offline · preset mode";
+    });
+}
+
+// =====================================================================
+// SKETCH ANALYSIS
+// =====================================================================
+
+function analyseSketch() {
+  if (!state.sketchDataUrl || state.analysing) return;
+  state.analysing = true;
+
+  var result = document.getElementById("analysisResult");
+  var status = document.getElementById("analysisStatus");
+  var source = document.getElementById("analysisSource");
+  var body = document.getElementById("analysisBody");
+  var btn = document.getElementById("analyseBtn");
+
+  result.classList.add("active");
+  body.innerHTML = "";
+  btn.disabled = true;
+
+  // Decide path:
+  //   1. If sketch is a PRESET and proxy offline → return truth directly
+  //      (fast, clean, guaranteed)
+  //   2. If proxy online → use Claude API
+  //   3. Else (uploaded, no proxy) → local heuristic
+  var isPreset = state.sketchSource && state.sketchSource.kind === "preset";
+
+  if (state.proxyAvailable) {
+    status.innerHTML = '<span class="loader"></span>Analysing via proxy → Claude multimodal…';
+    source.textContent = "source · claude sonnet via local proxy";
+    analyseViaProxy()
+      .then(function (parsed) { applyAnalysis(parsed, "proxy"); })
+      .catch(function (err) {
+        source.textContent = "source · proxy failed, falling back";
+        if (isPreset) {
+          var preset = PRESETS.find(function (pp) { return pp.id === state.sketchSource.id; });
+          applyAnalysis(preset.truth, "preset");
+        } else {
+          analyseLocally().then(function (p) { applyAnalysis(p, "local"); });
+        }
+      });
+  } else if (isPreset) {
+    status.innerHTML = '<span class="loader"></span>Loading preset parameters…';
+    source.textContent = "source · preset reference parameters";
+    setTimeout(function () {
+      var preset = PRESETS.find(function (pp) { return pp.id === state.sketchSource.id; });
+      applyAnalysis(preset.truth, "preset");
+    }, 400);
+  } else {
+    status.innerHTML = '<span class="loader"></span>Local heuristic analysis…';
+    source.textContent = "source · local javascript heuristic (no api)";
+    analyseLocally().then(function (p) { applyAnalysis(p, "local"); });
+  }
+}
+
+function analyseViaProxy() {
+  var parts = state.sketchDataUrl.split(",");
+  var base64 = parts[1];
+  var mt = state.sketchDataUrl.match(/data:([^;]+)/);
+  var mediaType = mt ? mt[1] : "image/png";
+
+  var prompt =
+    "You are analysing a fashion design sketch to extract parameters for a T-shirt pattern generator. " +
+    "Respond with ONLY a JSON object (no markdown, no prose) with these fields:\n\n" +
+    "{\n" +
+    '  "neckline": "crew" | "v" | "scoop",\n' +
+    '  "neck_depth_cm": number between 3 and 20,\n' +
+    '  "body_length_cm": number between 50 and 90,\n' +
+    '  "sleeve_length_cm": number between 10 and 70,\n' +
+    '  "ease_cm": number between 0 and 25,\n' +
+    '  "shoulder_width_cm": number between 36 and 56,\n' +
+    '  "reasoning": "one short sentence"\n' +
+    "}";
+
+  return fetch(PROXY_URL + "/analyse", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1000,
+      messages: [{
+        role: "user",
+        content: [
+          { type: "image", source: { type: "base64", media_type: mediaType, data: base64 } },
+          { type: "text", text: prompt }
+        ]
+      }]
+    })
+  }).then(function (r) {
+    if (!r.ok) throw new Error("proxy " + r.status);
+    return r.json();
+  }).then(function (data) {
+    var text = "";
+    for (var i = 0; i < data.content.length; i++) {
+      if (data.content[i].text) text += data.content[i].text;
+    }
+    var clean = text.replace(/```json|```/g, "").trim();
+    return JSON.parse(clean);
+  });
+}
+
+function analyseLocally() {
+  return new Promise(function (resolve) {
+    var img = new Image();
+    img.onload = function () {
+      var c = document.createElement("canvas");
+      c.width = img.naturalWidth; c.height = img.naturalHeight;
+      var ctx = c.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      var d = ctx.getImageData(0, 0, c.width, c.height).data;
+      var W = c.width, H = c.height;
+
+      function lum(i) {
+        return 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+      }
+
+      var minX = W, maxX = 0, minY = H, maxY = 0;
+      var rowL = new Array(H), rowR = new Array(H);
+      for (var y = 0; y < H; y++) { rowL[y] = -1; rowR[y] = -1; }
+      for (var y2 = 0; y2 < H; y2++) {
+        for (var x = 0; x < W; x++) {
+          var idx = (y2 * W + x) * 4;
+          if (lum(idx) > 128) {
+            if (x < minX) minX = x;
+            if (x > maxX) maxX = x;
+            if (y2 < minY) minY = y2;
+            if (y2 > maxY) maxY = y2;
+            if (rowL[y2] === -1) rowL[y2] = x;
+            rowR[y2] = x;
+          }
+        }
+      }
+
+      if (maxX < minX || maxY < minY) {
+        resolve({
+          neckline: "crew", neck_depth_cm: 8, body_length_cm: 68,
+          sleeve_length_cm: 58, ease_cm: 8, shoulder_width_cm: 44,
+          reasoning: "No silhouette detected. Defaults."
+        });
+        return;
+      }
+
+      var bw = maxX - minX;
+      var bh = maxY - minY;
+
+      var topSpanMax = 0;
+      for (var y3 = minY; y3 < minY + Math.floor(bh * 0.4); y3++) {
+        var w3 = rowR[y3] - rowL[y3];
+        if (w3 > topSpanMax) topSpanMax = w3;
+      }
+      var bodyRow = minY + Math.floor(bh * 0.6);
+      var bodyWpx = rowR[bodyRow] - rowL[bodyRow];
+      var sleeveExtension = topSpanMax - bodyWpx;
+      var sleeveRatio = sleeveExtension / Math.max(1, bodyWpx);
+      var sleeveCm;
+      if (sleeveRatio < 0.15) sleeveCm = 15;
+      else if (sleeveRatio < 0.45) sleeveCm = 25;
+      else if (sleeveRatio < 0.85) sleeveCm = 42;
+      else sleeveCm = 58;
+
+      var bodyRatio = bh / Math.max(1, bodyWpx);
+      var bodyCm = Math.max(50, Math.min(90, Math.round(45 + bodyRatio * 25)));
+
+      var expectedBodyW = bh * 0.7;
+      var widthRatio = bodyWpx / expectedBodyW;
+      var easeCm = Math.max(0, Math.min(25, Math.round((widthRatio - 0.9) * 25 + 8)));
+
+      var shoulderRow = minY + Math.floor(bh * 0.15);
+      var shoulderPx = rowR[shoulderRow] - rowL[shoulderRow];
+      var shoulderRatio = shoulderPx / Math.max(1, bodyWpx);
+      var shoulderCm = Math.max(36, Math.min(56, Math.round(30 + shoulderRatio * 25)));
+
+      var cxPx = Math.floor((minX + maxX) / 2);
+      var neckDepthPx = 0;
+      var hitLight = false;
+      for (var y4 = minY; y4 < minY + Math.floor(bh * 0.4); y4++) {
+        var i2 = (y4 * W + cxPx) * 4;
+        var L = lum(i2);
+        if (!hitLight && L > 128) hitLight = true;
+        if (hitLight && L < 128) {
+          neckDepthPx = y4 - minY;
+        }
+      }
+      var neckDepthCm = Math.max(3, Math.min(20, Math.round(4 + neckDepthPx * 0.3)));
+
+      var neckStyle = "crew";
+      if (neckDepthPx > 0) {
+        var holeRow = minY + Math.max(1, Math.floor(neckDepthPx * 0.6));
+        var holeLx = -1, holeRx = -1;
+        for (var hx = cxPx; hx >= minX; hx--) {
+          var hi = (holeRow * W + hx) * 4;
+          if (lum(hi) > 128) { holeLx = hx; break; }
+        }
+        for (var hx2 = cxPx; hx2 <= maxX; hx2++) {
+          var hi2 = (holeRow * W + hx2) * 4;
+          if (lum(hi2) > 128) { holeRx = hx2; break; }
+        }
+        var holeW = (holeRx - holeLx) || 0;
+        var depthRatio = neckDepthPx / bh;
+        var holeRatio = holeW / bodyWpx;
+        if (depthRatio > 0.12 && holeRatio < 0.22) neckStyle = "v";
+        else if (depthRatio > 0.08 && holeRatio > 0.25) neckStyle = "scoop";
+        else neckStyle = "crew";
+      }
+
+      resolve({
+        neckline: neckStyle,
+        neck_depth_cm: neckDepthCm,
+        body_length_cm: bodyCm,
+        sleeve_length_cm: sleeveCm,
+        ease_cm: easeCm,
+        shoulder_width_cm: shoulderCm,
+        reasoning: "Silhouette " + bw + "×" + bh + "px, sleeve ratio " +
+                   sleeveRatio.toFixed(2) + "."
+      });
+    };
+    img.src = state.sketchDataUrl;
+  });
+}
+
+function applyAnalysis(parsed, sourceKind) {
+  var status = document.getElementById("analysisStatus");
+  var body = document.getElementById("analysisBody");
+  var btn = document.getElementById("analyseBtn");
+
+  if (parsed.neckline && ["crew", "v", "scoop"].indexOf(parsed.neckline) !== -1) {
+    state.neckline = parsed.neckline;
+    var btns = document.querySelectorAll(".neckline-btn");
+    for (var j = 0; j < btns.length; j++) {
+      btns[j].classList.toggle("active", btns[j].dataset.type === parsed.neckline);
+    }
+    document.getElementById("necklineLabel").textContent = parsed.neckline;
+  }
+
+  function apply(key, stateKey, elId) {
+    if (typeof parsed[key] === "number") {
+      var v = Math.round(parsed[key]);
+      state[stateKey] = v;
+      document.getElementById(elId).value = v;
+      document.getElementById(elId + "Val").textContent = v;
+    }
+  }
+  apply("neck_depth_cm", "neckDepth", "neckDepth");
+  apply("body_length_cm", "length", "length");
+  apply("sleeve_length_cm", "sleeve", "sleeve");
+  apply("ease_cm", "ease", "ease");
+  apply("shoulder_width_cm", "shoulder", "shoulder");
+
+  var label =
+    sourceKind === "proxy" ? "✓ Complete · Claude multimodal" :
+    sourceKind === "preset" ? "✓ Complete · preset reference" :
+    "✓ Complete · local heuristic";
+  status.textContent = label;
+
+  var rows = [
+    ["Neckline", parsed.neckline],
+    ["Neck depth", parsed.neck_depth_cm + " cm"],
+    ["Body length", parsed.body_length_cm + " cm"],
+    ["Sleeve length", parsed.sleeve_length_cm + " cm"],
+    ["Ease", parsed.ease_cm + " cm"],
+    ["Shoulder", parsed.shoulder_width_cm + " cm"]
+  ];
+  var html = "";
+  for (var m = 0; m < rows.length; m++) {
+    html += '<div class="row"><span>' + rows[m][0] + '</span><span>' + rows[m][1] + '</span></div>';
+  }
+  if (parsed.reasoning) {
+    html += '<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--line-dim);font-style:italic;">"' + parsed.reasoning + '"</div>';
+  }
+  body.innerHTML = html;
+  render();
+
+  state.analysing = false;
+  btn.disabled = false;
+}
+
+// =====================================================================
+// EXPORT
+// =====================================================================
+
+function buildExportSvgString() {
+  var pattern = generatePattern(state);
+  var pieces = [
+    { data: pattern.front, name: "FRONT · CUT 1 ON FOLD" },
+    { data: pattern.back, name: "BACK · CUT 1 ON FOLD" },
+    { data: pattern.sleeve, name: "SLEEVE · CUT 2" }
+  ];
+
+  var gap = 20;
+  var cursorX = 0, maxH = 0;
+  var pad = 20;
+  var placed = [];
+  for (var i = 0; i < pieces.length; i++) {
+    var b = getBounds(pieces[i].data.outline);
+    placed.push({
+      ref: pieces[i],
+      offsetX: cursorX - b.minX * 10,
+      offsetY: -b.minY * 10,
+      bounds: b
+    });
+    cursorX += b.w * 10 + gap;
+    if (b.h * 10 > maxH) maxH = b.h * 10;
+  }
+  var totalW = cursorX - gap + pad * 2;
+  var totalH = maxH + pad * 2;
+
+  var body = "";
+  for (var j = 0; j < placed.length; j++) {
+    var it = placed[j];
+    var pts = [];
+    for (var k = 0; k < it.ref.data.outline.length; k++) {
+      var pt = it.ref.data.outline[k];
+      pts.push({
+        x: pt.x * 10 + it.offsetX + pad,
+        y: pt.y * 10 + it.offsetY + pad
+      });
+    }
+    body += '<path d="' + pointsToPath(pts) + '" fill="none" stroke="black" stroke-width="0.5"/>';
+    var g = it.ref.data.grainline;
+    body += '<line x1="' + (g[0].x * 10 + it.offsetX + pad) +
+            '" y1="' + (g[0].y * 10 + it.offsetY + pad) +
+            '" x2="' + (g[1].x * 10 + it.offsetX + pad) +
+            '" y2="' + (g[1].y * 10 + it.offsetY + pad) +
+            '" stroke="black" stroke-width="0.3" stroke-dasharray="4 2"/>';
+    var lpx = it.ref.data.labelPos.x * 10 + it.offsetX + pad;
+    var lpy = it.ref.data.labelPos.y * 10 + it.offsetY + pad;
+    body += '<text x="' + lpx + '" y="' + lpy + '" fill="black" font-family="monospace" font-size="8" text-anchor="middle">' + it.ref.name + '</text>';
+  }
+
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="' + totalW +
+         'mm" height="' + totalH + 'mm" viewBox="0 0 ' +
+         totalW + ' ' + totalH + '">' + body + '</svg>';
+}
+
+function downloadSvg() {
+  var s = buildExportSvgString();
+  var blob = new Blob([s], { type: "image/svg+xml" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url;
+  a.download = "fabriform_pattern_" + Date.now() + ".svg";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(url); }, 500);
+}
+
+function downloadPrintable() {
+  var s = buildExportSvgString();
+  var win = window.open("", "_blank");
+  if (!win) return;
+
+  var doc = win.document;
+  doc.open();
+  doc.write("<!DOCTYPE html><html><head></head><body></body></html>");
+  doc.close();
+
+  var title = doc.createElement("title");
+  title.textContent = "Fabri-Form · Print Pattern";
+  doc.head.appendChild(title);
+
+  var style = doc.createElement("style");
+  style.textContent =
+    "@page { margin: 10mm; }" +
+    "body { margin: 0; font-family: monospace; }" +
+    ".meta { font-size: 10px; padding: 8px; border-bottom: 1px solid #ccc; margin-bottom: 8px; }" +
+    "svg { display: block; }" +
+    "@media print { .meta { display: none; } }";
+  doc.head.appendChild(style);
+
+  var meta = doc.createElement("div");
+  meta.className = "meta";
+  meta.textContent = "FABRI-FORM · Stage 01 · Generated " + new Date().toLocaleString() +
+                     " · Scale 1:1 · Print at 100% / Actual Size";
+  doc.body.appendChild(meta);
+
+  var wrap = doc.createElement("div");
+  wrap.innerHTML = s;
+  doc.body.appendChild(wrap);
+
+  setTimeout(function () { win.print(); }, 500);
+}
+
+// =====================================================================
+// INIT
+// =====================================================================
+
+function init() {
+  buildGallery();
+  bindControls();
+  checkProxy();
+  render();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>

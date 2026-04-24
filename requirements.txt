@@ -1,0 +1,2 @@
+# Fabri-Form proxy uses only the Python standard library.
+# This file exists to tell Render that this is a Python project.
